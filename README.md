@@ -1,3 +1,3 @@
 ## PennyWise
 
-Saving and stuff
+Facilitating Saving for Clients

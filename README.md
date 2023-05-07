@@ -1,3 +1,3 @@
 ## PennyWise
 
-Facilitating Saving for Clients
+Simple API for facilitating saving for users.

@@ -11,7 +11,48 @@ datasource db {
 }
 
 model User {
-  id    String @id @unique @default(uuid())
-  email String @unique
-  name  String
+  id          String            @id @unique @default(uuid())
+  email       String            @unique
+  firstName   String            @map("first_name")
+  lastName    String            @map("last_name")
+  phoneNumber String            @map("phone_number")
+  sex         Gender?
+  address     String?
+  city        String?
+  state       String?
+  financials  FinancialDetails?
+  nextOfKin   NextOfKin?
+  password    String
+  createdOn   DateTime          @default(now()) @map("created_on")
+  updatedOn   DateTime          @updatedAt @map("updated_on")
+}
+
+model NextOfKin {
+  id            String   @id @default(uuid())
+  firstName     String   @map("first_name")
+  lastName      String   @map("last_name")
+  sex           Gender
+  phoneNumber   String   @map("phone_number")
+  relationship  String
+  bankName      String   @map("bank_name")
+  accountNumber String   @map("account_number")
+  accountName   String   @map("account_name")
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String   @unique
+  createdOn     DateTime @default(now()) @map("created_on")
+  updatedOn     DateTime @updatedAt @map("updated_on")
+}
+
+enum Gender {
+  Male
+  Female
+}
+
+enum FinancialDetails {
+  NGN_5000_25000
+  NGN_25000_50000
+  NGN_50000_100000
+  NGN_100000_150000
+  NGN_150000_250000
+  NGN_250000_upwards
 }

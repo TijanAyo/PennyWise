@@ -2,9 +2,13 @@ import { PrismaClient } from "@prisma/client";
 import { ValidationError } from "joi";
 import { signUpPayload } from "../interfaces";
 import bcrypt from "bcrypt";
-import { signUpSchema } from "../helper/validation/auth.validate";
+import { signUpSchema } from "../validation/auth.validate";
+import TokenService from "../helper/generateToken";
+import MailerService from "../helper/mailer";
 
 const prisma = new PrismaClient();
+const tokenService = new TokenService();
+const mailerService = new MailerService();
 class AuthService {
     public async register(payload: signUpPayload) {
         try {
@@ -25,6 +29,7 @@ class AuthService {
                         phoneNumber: payload.phoneNumber,
                     }
                 });
+                await this.sendVerificationLink(newUser.email);
                 return {message: `Verification link has been sent to ${newUser.email}`};
             }
             return {message: "Someone with the email address exist... Try again with another email."};
@@ -48,11 +53,24 @@ class AuthService {
         return 'Login Service'
     }
 
-    private async hashedPassword(payload: string): Promise<string> {
-        const salt = process.env.SALT;
-        return await bcrypt.hash(payload, Number(salt));
+    public async verifyToken(token:string) {
+        try {
+
+        } catch(err:any) {
+
+        }
     }
 
+    private async hashedPassword(payload: string): Promise<string> {
+        const salt = Number(process.env.SALT);
+        return await bcrypt.hash(payload, salt);
+    }
+
+    private async sendVerificationLink(email:string) {
+        const token = await tokenService.verificationToken(email);
+        const verificationLink = `${process.env.BASE_URL}/verify-email/${token}`;
+        await mailerService.sendEmail(email, `Activate Your Account`, `If the link does not work, copy this URL into your browser: ${verificationLink}`);
+    }
 }
 
 export default AuthService;

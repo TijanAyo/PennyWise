@@ -5,6 +5,8 @@ import bcrypt from "bcrypt";
 import { signUpSchema } from "../validation/auth.validate";
 import TokenService from "../helper/generateToken";
 import MailerService from "../helper/mailer";
+import { JwtPayload } from "jsonwebtoken";
+import { logger } from "../helper/logger";
 
 const prisma = new PrismaClient();
 const tokenService = new TokenService();
@@ -34,7 +36,7 @@ class AuthService {
             }
             return {message: "Someone with the email address exist... Try again with another email."};
         } catch(err:any) {
-            console.error(err);
+            logger.error(err.message);
             if (err instanceof ValidationError) return {message: err.details[0].message};
             return {error: "Internal Server Error", message: err.message};
         }
@@ -53,11 +55,21 @@ class AuthService {
         return 'Login Service'
     }
 
-    public async verifyToken(token:string) {
+    public async verifyToken(token: string) {
         try {
-
+            const userToken = await tokenService.verifyVerificationToken(token) as JwtPayload;
+            if (Date.now() > userToken.exp! * 1000) {
+                return { error: "Invalid Token", message: "Verification token has expired."};
+            }
+            const user = await prisma.user.findUnique({ where: {email: userToken.email }});
+            if (!user) return { error: "Invalid Token", message: "Verification token is invalid."};
+            await prisma.user.update({
+                where: { email: userToken.email },
+                data: { isEmailVerified: true },
+            });
         } catch(err:any) {
-
+            logger.error(err.message);
+            return { error: "Internal Server Error", message: err.message};
         }
     }
 
@@ -68,7 +80,7 @@ class AuthService {
 
     private async sendVerificationLink(email:string) {
         const token = await tokenService.verificationToken(email);
-        const verificationLink = `${process.env.BASE_URL}/verify-email/${token}`;
+        const verificationLink = `${process.env.BASE_URL}/auth/verify-email/${token}`;
         await mailerService.sendEmail(email, `Activate Your Account`, `If the link does not work, copy this URL into your browser: ${verificationLink}`);
     }
 }

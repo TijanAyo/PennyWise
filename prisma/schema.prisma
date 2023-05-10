@@ -11,20 +11,21 @@ datasource db {
 }
 
 model User {
-  id          String            @id @unique @default(uuid())
-  email       String            @unique
-  firstName   String            @map("first_name")
-  lastName    String            @map("last_name")
-  phoneNumber String            @map("phone_number")
-  sex         Gender?
-  address     String?
-  city        String?
-  state       String?
-  financials  FinancialDetails?
-  nextOfKin   NextOfKin?
-  password    String
-  createdOn   DateTime          @default(now()) @map("created_on")
-  updatedOn   DateTime          @updatedAt @map("updated_on")
+  id              String            @id @unique @default(uuid())
+  email           String            @unique
+  firstName       String            @map("first_name")
+  lastName        String            @map("last_name")
+  phoneNumber     String            @map("phone_number")
+  sex             Gender?
+  address         String?
+  city            String?
+  state           String?
+  financials      FinancialDetails?
+  nextOfKin       NextOfKin?
+  password        String
+  isEmailVerified Boolean           @default(false)
+  createdOn       DateTime          @default(now()) @map("created_on")
+  updatedOn       DateTime          @updatedAt @map("updated_on")
 }
 
 model NextOfKin {

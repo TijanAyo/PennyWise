@@ -6,5 +6,6 @@ const authController = new AuthController();
 
 router.post("/onboarding", authController.onboarding);
 router.post("/login", authController.login);
+router.get("/verify-email/:token", authController.verifyToken);
 
 export default router;

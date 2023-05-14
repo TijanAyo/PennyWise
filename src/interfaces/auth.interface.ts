@@ -38,3 +38,7 @@ enum Gender {
     Male = "Male",
     Female = "Female",
 }
+
+export type resendLinkPayload = {
+    email: string;
+}

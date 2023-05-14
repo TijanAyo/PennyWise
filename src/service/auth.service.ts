@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { ValidationError } from "joi";
-import { signInPayload, signUpPayload } from "../interfaces";
+import { resendLinkPayload, signInPayload, signUpPayload } from "../interfaces";
 import bcrypt from "bcrypt";
 import { resendVerificationLinkSchema, signInSchema, signUpSchema } from "../validation";
 import TokenService from "../helper/generateToken";
@@ -84,16 +84,19 @@ class AuthService {
         }
     }
 
-    public async resendVerficationLink(email: string) {
-        // validate client email
-        await resendVerificationLinkSchema.validateAsync(email);
-        const user = await prisma.user.findUnique({ where: {email: email}});
-        // check if client email exist in database
-        if (user && user.isEmailVerified==false){
-            await this.sendVerificationLink(email);
-            return {message: "Verification link has been sent to provided email account"};
+    public async resendVerficationLink(payload: resendLinkPayload) {
+        try {
+            await resendVerificationLinkSchema.validateAsync({email: payload.email});
+            const user = await prisma.user.findUnique({ where: {email: payload.email}});
+            if (user && user.isEmailVerified==false){
+                await this.sendVerificationLink(payload.email);
+                return {message: "Verification link has been sent to provided email account"};
+            }
+            return {error:"Activation Error", message: `${user?.firstName} account has been activated previously... SignIn to continue`};
+        } catch(err:any) {
+            logger.error(err.message);
+            return { error: "Internal Server Error", message: err.message};
         }
-        return {error:"Activation Error", message: `${user?.firstName} account has been activated previously... SignIn to continue`};
     }
 
 

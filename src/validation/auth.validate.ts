@@ -13,10 +13,6 @@ export const signInSchema = joi.object({
   password:joi.string().min(6).max(20).required()
 });
 
-export const resetYourPassword = joi.object({
-  email: joi.string().email().required()
-});
-
 export const resendVerificationLinkSchema = joi.object({
   email: joi.string().email().required()
 });

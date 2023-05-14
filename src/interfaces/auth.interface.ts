@@ -4,7 +4,7 @@ export interface signUpPayload {
     firstName: string;
     lastName: string;
     phoneNumber: string;
-    sex?: string;
+    sex?: Gender;
     address?: string;
     city?: string;
     state?: string;
@@ -16,4 +16,25 @@ export interface signUpPayload {
 export interface signInPayload {
     email: string
     password: string
+}
+
+export type IUser = {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    sex: string | null;
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+    password: string;
+    isEmailVerified: boolean;
+    createdOn: Date;
+    updatedOn: Date;
+}
+
+enum Gender {
+    Male = "Male",
+    Female = "Female",
 }

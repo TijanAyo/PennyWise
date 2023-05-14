@@ -16,9 +16,10 @@ class AuthController {
 
     public async login(req: Request, res: Response) {
         try {
-            const response = await authService.login();
+            const response = await authService.login(req.body);
             return res.status(200).json(response);
         } catch(err:any) {
+            logger.error(err.message);
             return res.status(500).json({statusCode: 500, message: "Something wrong happened"});
         }
 
@@ -33,6 +34,16 @@ class AuthController {
             } else {
                 return res.status(403).json({ message: "Email Verification not successful... Resend Verification Link" });
             }
+        } catch(err:any) {
+            // logger.error(err.message);
+            return res.status(500).json({statusCode: 500, message: "Something went wrong somewhere"});
+        }
+    }
+
+    public async resendVerificationLink(req: Request, res: Response) {
+        try {
+            const response = await authService.resendVerficationLink(req.body);
+            return res.status(200).json(response);
         } catch(err:any) {
             logger.error(err.message);
             return res.status(500).json({statusCode: 500, message: "Something went wrong somewhere"});

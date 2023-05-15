@@ -39,6 +39,10 @@ enum Gender {
     Female = "Female",
 }
 
-export type resendLinkPayload = {
+export interface resendLinkPayload {
+    email: string;
+}
+
+export interface resetPasswordPayload {
     email: string;
 }

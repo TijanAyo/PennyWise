@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { ValidationError } from "joi";
-import { resendLinkPayload, signInPayload, signUpPayload } from "../interfaces";
+import { resendLinkPayload, resetPasswordPayload, signInPayload, signUpPayload } from "../interfaces";
 import bcrypt from "bcrypt";
-import { resendVerificationLinkSchema, signInSchema, signUpSchema } from "../validation";
+import { resendVerificationLinkSchema, resetPasswordSchema, signInSchema, signUpSchema } from "../validation";
 import TokenService from "../helper/generateToken";
 import MailerService from "../helper/mailer";
 import { JwtPayload } from "jsonwebtoken";
@@ -100,18 +100,59 @@ class AuthService {
     }
 
 
-    public async resetYourPassword() {
-        // Validate client input
+    public async resetPassword(payload: resetPasswordPayload) {
+        try {
+            // Validate client input (email)
+            await resetPasswordSchema.validateAsync({email: payload.email});
+            // check if client exist in database
+            const user = await prisma.user.findUnique({ where: {email: payload.email}});
+            if (user && user.isEmailVerified==true){
+                // generate OTP code
+                const otp = await tokenService.generateOtp();
+                // Check if the user already has an OTP record
+                const existingOtp = await prisma.otp.findUnique({ where: { userId: user.id }});
+                const updatedOtp = existingOtp
+                ? await prisma.otp.update({
+                    where: { id: existingOtp.id },
+                    data: {
+                        otpCode: otp,
+                        otpCodeExpires: new Date(Date.now() + 300000) // expires in 5 minutes
+                    }
+                })
+                : await prisma.otp.create({
+                    data: {
+                        otpCode: otp,
+                        otpCodeExpires: new Date(Date.now() + 300000), // expires in 5 minutes
+                        user: { connect: { id: user.id }}
+                    }
+                });
+                // Update the user with the OTP relation
+                await prisma.user.update({
+                    where: { email: payload.email },
+                    data: { otp: { connect: { id: updatedOtp.id }}}
+                });
+                // Send OTP code to client provided input (email)
+                await mailerService.sendEmail(payload.email, "Password Reset OTP", `Your OTP code is: ${otp}`);
+                return {message: "OTP code has been sent to your email address."};
+            }
+            return {error: "User not found", message: "Invalid email address"};
 
-        // Check if client data exist in database
-
-        // If an account exist with client provided mail an OTP is sent out
-
-        // Client verifies the OTP and can make changes to account
+        } catch(err:any){
+            logger.error(err.message);
+            return { error: "Internal Server Error", message: err.message};
+        }
     }
 
     public async verifyResetYourPassword() {
-        // OTP code, new_password, confirm-password
+        // Taking 4 parameters "code", "email", "new_password", "confirm-password"
+
+        // Validate clients input
+
+        // validate client provided code with code stored with client
+
+        // Hash client password
+
+        // update client password
     }
 
     private async resendToken() {}

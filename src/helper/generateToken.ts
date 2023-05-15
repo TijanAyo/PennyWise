@@ -9,7 +9,7 @@ class TokenService {
             if (!token) return 'Failed to generate token'
             return token;
         } catch(err:any){
-            return `Something went wrong somewhere: ${err.message}`
+            throw new Error(`Something went wrong somewhere: ${err.message}`);
         }
     }
 
@@ -21,6 +21,7 @@ class TokenService {
         } catch(err:any) {
             if (err instanceof TokenExpiredError) return "Token has expired";
             logger.error(`Failed to verify verification token: ${err.message}`);
+            throw new Error(`Something went wrong somewhere: ${err.message}`); 
         }
     }
 
@@ -31,7 +32,19 @@ class TokenService {
             return token;
         } catch(err:any) {
             logger.error(err.message);
-            return {message: "Something went wrong... Try again in few minutes time"};
+            throw new Error("Something went wrong... Try again in few minutes time");
+        }
+    }
+
+    public async generateOtp() {
+        try {
+            const randomDecimalNum = Math.random();
+            const randomNumber = Math.floor(randomDecimalNum * 10000);
+            const otp = randomNumber.toString().padStart(4, '0');
+            return otp;
+        } catch(err:any) {
+            logger.error(err.message);
+            throw new Error("Something went wrong... Try again in a few minutes"); 
         }
     }
 }

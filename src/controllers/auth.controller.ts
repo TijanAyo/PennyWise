@@ -49,6 +49,16 @@ class AuthController {
             return res.status(500).json({statusCode: 500, message: "Something went wrong somewhere"});
         }
     }
+
+    public async forgotPassword(req: Request, res: Response) {
+        try {
+            const response = await authService.resetPassword(req.body);
+            return res.status(200).json(response);
+        } catch(err:any){
+            logger.error(err.message);
+            return res.status(500).json({statusCode: 500, message: "Something went wrong somewhere"});
+        }
+    }
 }
 
 export default AuthController;

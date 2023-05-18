@@ -36,7 +36,7 @@ class TokenService {
         }
     }
 
-    public async generateOtp() {
+    public async generateOtp(): Promise<string> {
         try {
             const randomDecimalNum = Math.random();
             const randomNumber = Math.floor(randomDecimalNum * 10000);

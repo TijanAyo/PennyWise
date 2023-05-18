@@ -9,5 +9,7 @@ router.post("/login", authController.login);
 router.get("/verify-email/:token", authController.verifyToken);
 router.post("/resend-verification-link", authController.resendVerificationLink);
 router.post("/forgot-password", authController.forgotPassword);
+router.patch("/verify-otp", authController.verifyOTP);
+router.post("/resend-otp", authController.resendOTP);
 
 export default router;

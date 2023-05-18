@@ -46,3 +46,14 @@ export interface resendLinkPayload {
 export interface resetPasswordPayload {
     email: string;
 }
+
+export interface verifyOTPPayload {
+    email: string;
+    code: string
+    new_password: string;
+    confirm_password: string;
+}
+
+export interface resendOTPPayload {
+    email: string;
+}

@@ -20,3 +20,14 @@ export const resendVerificationLinkSchema = joi.object({
 export const resetPasswordSchema = joi.object({
   email: joi.string().email().required()
 });
+
+export const verifyOTPSchema = joi.object({
+  email: joi.string().email().required(),
+  code: joi.string().max(4).required(),
+  new_password: joi.string().min(6).max(20).required(),
+  confirm_password: joi.ref('new_password')
+});
+
+export const resendOTPSchema = joi.object({
+  email: joi.string().email().required()
+});

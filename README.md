@@ -2,6 +2,11 @@
 
 Simple API for facilitating saving for users.
 
+## Features
+1. 💡 Personalized Savings Plans: No two savers are the same! PennyWise will craft tailored savings plans that align with your goals and financial situation. It's like having your own virtual savings coach!
+2. 💰 Seamless Automation: Say goodbye to manual transfers! PennyWise will automate the process, effortlessly stashing away your hard-earned money according to your chosen preferences.
+3. 🔒 Trust and Security: Rest easy knowing that PennyWise takes your financial security seriously. We're implementing top-notch security measures to protect your sensitive information and provide a safe platform for your savings.
+
 ## Installation
 To install PennyWise, follow these simple steps:
 
@@ -17,8 +22,6 @@ To install PennyWise, follow these simple steps:
     ```
     yarn start:dev
     ```
-
-You should have PennyWise installed...
 
 ## Documentation
 For more information on how to use PennyWise, please refer to the [documentation](http://documentation_link_goes_here). The documentation should provides detailed information on how to implement the backend service into your application.

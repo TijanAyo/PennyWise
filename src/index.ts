@@ -1,7 +1,6 @@
-import express, { Request, Response} from "express";
+import express, {Request, Response} from "express";
 import morgan from "morgan";
 import * as dotenv from "dotenv";
-
 import authRoute from "./routes/auth.route";
 
 dotenv.config();

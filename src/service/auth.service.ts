@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { ValidationError, date } from "joi";
+import { ValidationError } from "joi";
 import { resendLinkPayload, resendOTPPayload, resetPasswordPayload, signInPayload, signUpPayload, verifyOTPPayload } from "../interfaces";
 import bcrypt from "bcrypt";
 import { resendOTPSchema, resendVerificationLinkSchema, resetPasswordSchema, signInSchema, signUpSchema, verifyOTPSchema } from "../validation";
@@ -7,11 +7,13 @@ import TokenService from "../helper/generateToken";
 import MailerService from "../helper/mailer";
 import { JwtPayload } from "jsonwebtoken";
 import { logger } from "../helper/logger";
+import { AuthenticationError, BadRequestError, ForbiddenError, HttpCode, InternalServerError, NotFoundError } from "../helper/errorHandling";
 
 const prisma = new PrismaClient();
 const tokenService = new TokenService();
 const mailerService = new MailerService();
 class AuthService {
+
     public async register(payload: signUpPayload) {
         try {
             // Check if client email exist in database
@@ -34,11 +36,16 @@ class AuthService {
                 await this.sendVerificationLink(newUser.email);
                 return {message: `Verification link has been sent to ${newUser.email}`};
             }
-            return {error: "Email Address in-use", message: "Someone with the email address exist... Try again with another email."};
+            throw new BadRequestError({
+                httpCode: HttpCode.BAD_REQUEST,
+                description: "Someone with the email address already exists." 
+            });
         } catch(err:any) {
             logger.error(err.message);
-            if (err instanceof ValidationError) return {message: err.details[0].message};
-            return {error: "Internal Server Error", message: err.message};
+            if (err instanceof ValidationError) {
+                return {message: err.details[0].message};
+            }
+            throw err; // Rethrow the error to be caught in the controller  
         }
     }
 
@@ -48,21 +55,40 @@ class AuthService {
             await signInSchema.validateAsync(payload);
             // Check if client exist in the database
             const user = await prisma.user.findUnique({ where: { email: payload.email }});
-            if (!user) return {error: "Email not found", message: "Check email address and try again."};
+            if (!user) {
+                throw new NotFoundError({
+                    name: "Email not found",
+                    httpCode: HttpCode.NOT_FOUND,
+                    description: "Check email address and try again."
+                });
+            }
             // Compare password
             const isPasswordValid = await this.decodeHashedPassword(payload.password, user.password);
-            if (!isPasswordValid) return{error: "Incorrect Password", message: "Check password and try again."};
+            // if (!isPasswordValid) return{error: "Incorrect Password", message: "Check password and try again."};
+            if (!isPasswordValid) {
+                throw new AuthenticationError({
+                    name: "Incorrect Password",
+                    httpCode: HttpCode.UNAUTHORIZED,
+                    description: "Check password and try again."
+                });
+            }
             if (user.isEmailVerified === true) {
                 // Generate access-token
                 const tokenArgs = {id: user.id, email: user.email};
                 const accessToken = await tokenService.generateAccessToken(tokenArgs);
                 return {message: "Success", AccessToken: accessToken};
             } 
-            return {error: "Account Not Verified", message:"Check your mailbox and activate your account"};
+            throw new ForbiddenError({
+                name: "Account Not Verified",
+                httpCode: HttpCode.FORBIDDEN,
+                description: "Check your mailbox and activate your account" 
+            });
         } catch(err:any) {
             logger.error(err.message);
-            if (err instanceof ValidationError) return {message: err.details[0].message};
-            return {error: "Internal Server Error", message: err.message};
+            if (err instanceof ValidationError) {
+                return {message: err.details[0].message};
+            }
+            throw err; // Rethrow the error to be caught in the controller
         }
     }
 
@@ -95,10 +121,12 @@ class AuthService {
             return {error:"Activation Error", message: `${user?.firstName} account has been activated previously... SignIn to continue`};
         } catch(err:any) {
             logger.error(err.message);
-            return { error: "Internal Server Error", message: err.message};
+            if (err instanceof ValidationError) {
+                return {message: err.details[0].message};
+            }
+            throw err;
         }
     }
-
 
     public async resetPassword(payload: resetPasswordPayload) {
         try {
@@ -135,11 +163,14 @@ class AuthService {
                 await mailerService.sendEmail(payload.email, "Password Reset OTP", `Your OTP code is: ${otp}`);
                 return {message: "OTP code has been sent to your email address."};
             }
-            return {error: "User not found", message: "Invalid email address"};
-
+            throw new BadRequestError({
+                name: "User not found",
+                httpCode: HttpCode.NOT_FOUND,
+                description: "Invalid Email Address."
+            });
         } catch(err:any){
             logger.error(err.message);
-            return { error: "Internal Server Error", message: err.message};
+            throw err;
         }
     }
 
@@ -173,48 +204,6 @@ class AuthService {
         }
     }
 
-    /*
-    public async resendOTP(payload: resendOTPPayload) {
-        try {
-            // Validate client input
-            await resendOTPSchema.validateAsync({email: payload.email});
-            // Find user via email
-            const user = await prisma.user.findUnique({where: {email: payload.email}});
-            if (user && user.isEmailVerified==true) {
-                // Find OTP associated with user
-                const existingOTP = await prisma.otp.findUnique({where: { userId: user.id }});
-                if (existingOTP?.otpCode && existingOTP.otpCodeExpires >= new Date()) {
-                    // Send OTP code to client provided input (email)
-                    await mailerService.sendEmail(payload.email, "Password Reset OTP", `Your OTP is still valid: ${existingOTP.otpCode} try not to share with anyone.`);
-                    return {message: "OTP code has been sent to your email address."};
-                }
-                // If user does not have an OTP
-                const OTP = await tokenService.generateOtp();
-                // create a new OTP record
-                const newOTP = await prisma.otp.create({
-                    data: {
-                        otpCode: OTP,
-                        otpCodeExpires: new Date(Date.now() + 300000), // expires in 5 minutes
-                        user: { connect: { id: user.id }}
-                    }
-                });
-                // update user with new OTP relation
-                await prisma.user.update({
-                    where: {email: payload.email},
-                    data: {otp: {connect: { id: newOTP.id}}}
-                });
-                // Send OTP code to client provided input (email)
-                await mailerService.sendEmail(payload.email, "Password Reset OTP", `Your OTP code is: ${OTP}`);
-                return {message: "OTP code has been sent to your email address."};
-            }
-            return {error: "User not defined", message: "User does not exist / User account is not activated"};
-        } catch(err:any) {
-            logger.error(err.message);
-            return { error: "Internal Server Error", message: err.message};
-        }
-    }
-    */
-
     public async resendOTP(payload: resendOTPPayload) {
         try {
             // Validate client input
@@ -226,7 +215,6 @@ class AuthService {
             const existingOTP = await prisma.otp.findUnique({
                 where: { userId: user.id, }
             });
-
             // Check is otp is still valid
             const otpValid =  existingOTP?.otpCodeExpires && existingOTP.otpCodeExpires > new Date();
             // if otp is no longer valid

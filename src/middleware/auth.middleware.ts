@@ -33,11 +33,6 @@ class AuthMiddleware {
             return res.status(403).json({error: "Forbidden", message: "Token not found"});
         }
     }
-
-    public async isVerified(req: Request, res: Response, next: NextFunction) {
-        if (!req.user.isEmailVerified) return res.status(403).json({error: "Account Not Verified", message:"Check your mailbox and activate your account"});
-        next();
-    }
 }
 
 export default AuthMiddleware;

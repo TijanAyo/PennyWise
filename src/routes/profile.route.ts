@@ -7,8 +7,9 @@ const profileController = new ProfileController();
 const authMiddleware = new AuthMiddleware();
 
 router.get("/personal", authMiddleware.authorize, profileController.getPersonalInfo);
-router.patch("/update/personal", authMiddleware.authorize, profileController.updatePersonalInfo);
-router.patch("/next-of-kin", authMiddleware.authorize, profileController.nextOfKin);
+router.patch("/personal", authMiddleware.authorize, profileController.updatePersonalInfo);
+router.post("/next-of-kin", authMiddleware.authorize, profileController.nextOfKin);
+router.patch("/next-of-kin", authMiddleware.authorize, profileController.updateNextOfKin);
 router.patch("/security", authMiddleware.authorize, profileController.changePassword);
 
 export default router;

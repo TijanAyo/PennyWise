@@ -239,12 +239,12 @@ class AuthService {
         }
     }
 
-    private async hashedPassword(payload: string): Promise<string> {
+    public async hashedPassword(payload: string): Promise<string> {
         const salt = Number(process.env.SALT);
         return await bcrypt.hash(payload, salt);
     }
 
-    private async decodeHashedPassword(payload:string, payloadHash:string): Promise<boolean> {
+    public async decodeHashedPassword(payload:string, payloadHash:string): Promise<boolean> {
         return await bcrypt.compare(payload, payloadHash);
     }
 

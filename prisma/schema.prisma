@@ -58,6 +58,7 @@ model Otp {
 enum Gender {
   Male
   Female
+  Other
 }
 
 enum FinancialDetails {

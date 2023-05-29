@@ -34,7 +34,6 @@ class BadRequestError extends Error {
     }
 }
   
-
 class InternalServerError extends Error {
     statusCode: number;
 
@@ -44,7 +43,6 @@ class InternalServerError extends Error {
         this.statusCode = HttpCode.INTERNAL_SERVER_ERROR
     }
 }
-
 class AuthenticationError extends Error {
     statusCode: number;
 
@@ -54,7 +52,6 @@ class AuthenticationError extends Error {
         this.statusCode = HttpCode.UNAUTHORIZED;
     }
 }
-
 class ForbiddenError extends Error {
     statusCode: number;
 

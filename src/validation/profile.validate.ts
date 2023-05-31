@@ -1,5 +1,5 @@
 import joi from "joi";
-import { Gender, FinancialDetails } from "../interfaces";
+import { Gender, FinancialDetails, Relationship } from "../interfaces";
 
 export const profileInfoSchema = joi.object({
     sex: joi.string().valid(Gender.Male, Gender.Female, Gender.Other),
@@ -21,7 +21,12 @@ export const nextOfKinSchema = joi.object({
     lastName: joi.string().max(20).required(),
     sex: joi.string().valid(Gender.Male, Gender.Female, Gender.Other),
     phoneNumber: joi.string().max(11).required(),
-    relationship: joi.string().max(20).required(),
+    relationship: joi.string().valid(
+        Relationship.Brother, Relationship.Daughter,
+        Relationship.Father, Relationship.Husband,
+        Relationship.Mother, Relationship.Sister,
+        Relationship.Son, Relationship.Wife
+    ),
     bankName: joi.string().max(20).required(),
     accountNumber: joi.string().max(10).required(),
     accountName: joi.string().max(20).required(),

@@ -13,6 +13,17 @@ export enum FinancialDetails {
     NGN_250000_upwards = 'NGN_250000_upwards'
 }
 
+export enum Relationship {
+    Brother = 'Brother',
+    Sister = 'Sister',
+    Mother = 'Mother',
+    Father = 'Father',
+    Son = 'Son',
+    Daughter = 'Daughter',
+    Wife = 'Wife',
+    Husband = 'Husband'
+}
+
 export interface profileInfoPayload {
     sex?: Gender,
     address?: string,
@@ -25,7 +36,7 @@ export interface nextOfKinPayload {
     firstName: string,
     lastName: string,
     sex?: Gender,
-    phoneNumber: string,
+    phoneNumber: Relationship,
     relationship: string,
     bankName: string,
     accountNumber: string,

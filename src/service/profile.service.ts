@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { logger } from "../helper/logger";
-import { ValidationError, string } from "joi";
+import { ValidationError } from "joi";
 import { AuthenticationError, BadRequestError, NotFoundError } from "../helper/errorHandling";
 import { HttpCode } from "../helper/errorHandling";
 import { nextOfKinPayload, profileInfoPayload, securityInfoPayload } from "../interfaces/profile.interface";
@@ -24,6 +24,8 @@ class ProfileService {
                     firstName: true,
                     lastName: true,
                     phoneNumber: true,
+                    bankName: true,
+                    accountNumber: true,
                     sex: true,
                     address: true,
                     city: true,

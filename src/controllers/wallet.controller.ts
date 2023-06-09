@@ -1,5 +1,4 @@
 class WalletController {
-
     /**
      * Method: POST and PATCH
      * Endpoint: /dashboard/wallet/fund

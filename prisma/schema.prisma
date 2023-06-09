@@ -16,6 +16,9 @@ model User {
   firstName       String            @map("first_name")
   lastName        String            @map("last_name")
   phoneNumber     String            @map("phone_number")
+  bvn             String
+  accountNumber   String?           @map("account_number")
+  bankName        String?           @map("bank_name")
   sex             Gender?
   address         String?
   city            String?

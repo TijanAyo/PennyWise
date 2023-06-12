@@ -54,13 +54,14 @@ class AuthService {
                     bvn: payload.bvn
                 }
                 const virtualAccountResponse = await virtualAccountService.createVirtualAccount(virtualAccountPayload);
-                // Update the registered user with the virtual account info
-                await prisma.user.update({
-                    where: { id: newUser.id },
+                // Create wallet for registered user with virtual account info
+                await prisma.wallet.create({
                     data: {
-                        accountNumber:virtualAccountResponse.data.account_number,
-                        bankName: virtualAccountResponse.data.bank_name
-                    }
+                        accountNumber: virtualAccountResponse.data.account_number,
+                        bankName: virtualAccountResponse.data.bank_name,
+                        balance: virtualAccountResponse.data.amount,
+                        user: { connect: { id: newUser.id }}
+                    },
                 });
                 return {message: `Verification link has been sent to ${newUser.email}`};
             }

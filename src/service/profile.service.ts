@@ -24,13 +24,18 @@ class ProfileService {
                     firstName: true,
                     lastName: true,
                     phoneNumber: true,
-                    bankName: true,
-                    accountNumber: true,
                     sex: true,
                     address: true,
                     city: true,
                     state: true,
                     financials: true,
+                    wallet: {
+                        select: {
+                            accountNumber: true,
+                            bankName: true,
+                            balance: true
+                        }
+                    },
                     nextOfKin: {
                         select: {
                             id: true,

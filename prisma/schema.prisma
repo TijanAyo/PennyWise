@@ -16,6 +16,7 @@ model User {
   firstName       String            @map("first_name")
   lastName        String            @map("last_name")
   phoneNumber     String            @map("phone_number")
+  bvn             String            @map("bank_verfication_number")
   sex             Gender?
   address         String?
   city            String?
@@ -23,6 +24,7 @@ model User {
   financials      FinancialDetails?
   nextOfKin       NextOfKin?
   otp             Otp?
+  wallet          Wallet?
   password        String
   isEmailVerified Boolean           @default(false)
   createdOn       DateTime          @default(now()) @map("created_on")
@@ -53,6 +55,17 @@ model Otp {
   userId         String   @unique
   createdOn      DateTime @default(now()) @map("created_on")
   updatedOn      DateTime @updatedAt @map("updated_on")
+}
+
+model Wallet {
+  id            String   @id @default(uuid())
+  accountNumber String   @map("account_number")
+  bankName      String   @map("bank_name")
+  balance       String   @map("account_balance")
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String   @unique
+  createdOn     DateTime @default(now()) @map("created_on")
+  updatedOn     DateTime @default(now()) @map("updated_on")
 }
 
 enum Gender {

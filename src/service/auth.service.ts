@@ -1,19 +1,34 @@
 import { PrismaClient } from "@prisma/client";
 import { ValidationError } from "joi";
-import { resendLinkPayload, resendOTPPayload, resetPasswordPayload, signInPayload, signUpPayload, verifyOTPPayload } from "../interfaces";
+import { resendLinkPayload,resendOTPPayload,
+        resetPasswordPayload, signInPayload,
+        signUpPayload, verifyOTPPayload
+} from "../interfaces";
 import bcrypt from "bcrypt";
-import { resendOTPSchema, resendVerificationLinkSchema, resetPasswordSchema, signInSchema, signUpSchema, verifyOTPSchema } from "../validation";
+import { resendOTPSchema, resendVerificationLinkSchema,
+        resetPasswordSchema, signInSchema,
+        signUpSchema, verifyOTPSchema 
+} from "../validation";
 import TokenService from "../helper/generateToken";
 import MailerService from "../helper/mailer";
 import { JwtPayload } from "jsonwebtoken";
 import { logger } from "../helper/logger";
-import { AuthenticationError, BadRequestError, ForbiddenError, HttpCode, InternalServerError, NotFoundError } from "../helper/errorHandling";
+import { AuthenticationError,BadRequestError,
+        ForbiddenError, HttpCode,
+        NotFoundError, ConflictingRequestError
+} from "../helper/errorHandling";
+import VirtualAccountService from "./virtualAccount.service";
+import { createVirtualAccountPayload } from "../interfaces/wallet.interface";
 
 const prisma = new PrismaClient();
 const tokenService = new TokenService();
 const mailerService = new MailerService();
+const virtualAccountService = new VirtualAccountService();
 class AuthService {
-
+    /**
+     * @param payload 
+     * @returns string
+     */
     public async register(payload: signUpPayload) {
         try {
             // Check if client email exist in database
@@ -30,15 +45,32 @@ class AuthService {
                         firstName: payload.firstName,
                         lastName: payload.lastName,
                         password: hashedPassword,
+                        bvn: payload.bvn,
                         phoneNumber: payload.phoneNumber,
                     }
                 });
                 await this.sendVerificationLink(newUser.email);
+                // Virtual account payload
+                const virtualAccountPayload: createVirtualAccountPayload = {
+                    email: payload.email,
+                    is_permanent: true,
+                    bvn: payload.bvn
+                }
+                const virtualAccountResponse = await virtualAccountService.createVirtualAccount(virtualAccountPayload);
+                // Create wallet for registered user with virtual account info
+                await prisma.wallet.create({
+                    data: {
+                        accountNumber: virtualAccountResponse.data.account_number,
+                        bankName: virtualAccountResponse.data.bank_name,
+                        balance: virtualAccountResponse.data.amount,
+                        user: { connect: { id: newUser.id }}
+                    },
+                });
                 return {message: `Verification link has been sent to ${newUser.email}`};
             }
-            throw new BadRequestError({
-                httpCode: HttpCode.BAD_REQUEST,
-                description: "Someone with the email address already exists." 
+            throw new ConflictingRequestError({
+                httpCode: HttpCode.CONFLICTING_REQUEST,
+                description: "Email address already exists. Please choose a different email address." 
             });
         } catch(err:any) {
             logger.error(err.message);

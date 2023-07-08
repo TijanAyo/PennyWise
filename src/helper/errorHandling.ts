@@ -5,7 +5,8 @@ export enum HttpCode {
     UNAUTHORIZED = 401,
     NOT_FOUND = 404,
     INTERNAL_SERVER_ERROR = 500,
-    FORBIDDEN = 403
+    FORBIDDEN = 403,
+    CONFLICTING_REQUEST = 409,
 }
 
 interface AppErrorArgs {
@@ -31,6 +32,16 @@ class BadRequestError extends Error {
         super(args.description);
         this.name = "Bad Request";
         this.statusCode = HttpCode.BAD_REQUEST
+    }
+}
+
+class ConflictingRequestError extends Error {
+    statusCode: number;
+
+    constructor(args: AppErrorArgs) {
+        super(args.description);
+        this.name = "Conflicting Request";
+        this.statusCode = HttpCode.CONFLICTING_REQUEST
     }
 }
   
@@ -62,4 +73,4 @@ class ForbiddenError extends Error {
     }
 }
 
-export { NotFoundError, BadRequestError, InternalServerError, AuthenticationError, ForbiddenError};
+export { NotFoundError, BadRequestError, InternalServerError, AuthenticationError, ForbiddenError, ConflictingRequestError};

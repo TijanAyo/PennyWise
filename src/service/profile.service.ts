@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { logger } from "../helper/logger";
-import { ValidationError, string } from "joi";
+import { ValidationError } from "joi";
 import { AuthenticationError, BadRequestError, NotFoundError } from "../helper/errorHandling";
 import { HttpCode } from "../helper/errorHandling";
 import { nextOfKinPayload, profileInfoPayload, securityInfoPayload } from "../interfaces/profile.interface";
@@ -29,6 +29,13 @@ class ProfileService {
                     city: true,
                     state: true,
                     financials: true,
+                    wallet: {
+                        select: {
+                            accountNumber: true,
+                            bankName: true,
+                            balance: true
+                        }
+                    },
                     nextOfKin: {
                         select: {
                             id: true,

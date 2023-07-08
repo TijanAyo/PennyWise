@@ -1,5 +1,4 @@
 class WalletService {
-
     /**
      * Endpoint: /dashboard/wallet/fund
      * Description: Handles request to fund users wallet

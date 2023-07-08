@@ -1,7 +1,13 @@
 import { Request, Response } from "express";
 import AuthService from "../service/auth.service";
 import { logger } from "../helper/logger";
-import { NotFoundError, BadRequestError, InternalServerError, AuthenticationError,  ForbiddenError, HttpCode } from "../helper/errorHandling";
+import 
+{ 
+    NotFoundError, BadRequestError,
+    InternalServerError, AuthenticationError,
+    ForbiddenError, HttpCode, 
+    ConflictingRequestError 
+} from "../helper/errorHandling";
 
 const authService = new AuthService();
 class AuthController {
@@ -9,7 +15,7 @@ class AuthController {
     public async onboarding(req: Request, res: Response) {
         try {
             const response = await authService.register(req.body);
-            return res.json(response);
+            return res.status(201).json(response);
         } catch(err:any) {
             if (err instanceof NotFoundError) {
                 return res.status(HttpCode.NOT_FOUND).json({
@@ -29,6 +35,12 @@ class AuthController {
                     Message: err.message 
                 });
             }
+            if (err instanceof ConflictingRequestError) {
+                return res.status(HttpCode.CONFLICTING_REQUEST).json({
+                    StatusCode: err.statusCode,
+                    Message: err.message 
+                });
+            }
             if (err instanceof AuthenticationError) {
                 return res.status(HttpCode.UNAUTHORIZED).json({
                     StatusCode: err.statusCode,
@@ -37,16 +49,15 @@ class AuthController {
             }
             if (err instanceof ForbiddenError) {
                 return res.status(HttpCode.FORBIDDEN).json({
-                    statusCode: err.statusCode,
+                    StatusCode: err.statusCode,
                     Message: err.message 
                 });
             }
-          
             // If the error is not one of the custom error classes, handle it as a generic internal server error
             logger.error(err.message);
             return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({
-                statusCode: HttpCode.INTERNAL_SERVER_ERROR,
-                description: "Something went wrong somewhere.",
+                StatusCode: HttpCode.INTERNAL_SERVER_ERROR,
+                Message: "An error occurred while processing your request. Please try again later.",
             });
         }
     }

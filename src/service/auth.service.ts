@@ -286,6 +286,10 @@ class AuthService {
         const verificationLink = `${process.env.BASE_URL}/auth/verify-email/${token}`;
         await mailerService.sendEmail(email, `Activate Your Account`, `If the link does not work, copy this URL into your browser: ${verificationLink}`);
     }
+
+    private async testMethod() {
+        return "This should do something";
+    }
 }
 
 export default AuthService;

@@ -39,6 +39,7 @@ class AuthService {
                 // hash client password
                 const hashedPassword = await this.hashedPassword(payload.password);
                 // create new client
+                // Testing this new change
                 const newUser = await prisma.user.create({
                     data: {
                         email: payload.email,

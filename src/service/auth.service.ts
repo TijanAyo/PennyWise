@@ -15,7 +15,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { logger } from "../helper/logger";
 import { AuthenticationError,BadRequestError,
         ForbiddenError, HttpCode,
-        NotFoundError
+        NotFoundError, ConflictingRequestError
 } from "../helper/errorHandling";
 import VirtualAccountService from "./virtualAccount.service";
 import { createVirtualAccountPayload } from "../interfaces/wallet.interface";
@@ -25,7 +25,10 @@ const tokenService = new TokenService();
 const mailerService = new MailerService();
 const virtualAccountService = new VirtualAccountService();
 class AuthService {
-
+    /**
+     * @param payload 
+     * @returns string
+     */
     public async register(payload: signUpPayload) {
         try {
             // Check if client email exist in database
@@ -65,9 +68,9 @@ class AuthService {
                 });
                 return {message: `Verification link has been sent to ${newUser.email}`};
             }
-            throw new BadRequestError({
-                httpCode: HttpCode.BAD_REQUEST,
-                description: "Someone with the email address already exists." 
+            throw new ConflictingRequestError({
+                httpCode: HttpCode.CONFLICTING_REQUEST,
+                description: "Email address already exists. Please choose a different email address." 
             });
         } catch(err:any) {
             logger.error(err.message);
